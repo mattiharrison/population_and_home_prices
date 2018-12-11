@@ -128,18 +128,4 @@ plot_10 <- plot_grid(plot_3, plot_4, labels = c('', ''), ncol = 1)
 write_rds(plot_10, path = "finalproject/plot10.rds")
 ```
 
-```{r}
-CA <- map_data("state", region = "california")
-CA.1 <- ggplot(CA, aes(x = long, y = lat)) + geom_polygon()
-
-CA.2 <- leaflet() %>% setView(lng = -118.243683, lat = 34.052235, zoom = 9) %>% 
-  addProviderTiles(providers$Esri.NatGeoWorldMap)
-
-CT <- map_data("state", region = "connecticut")
-CT.1 <- ggplot(CT, aes(x = long, y = lat)) + geom_polygon()
-
-CT.2 <- leaflet() %>% setView(lng = -72.65065, lat = 41.56232, zoom = 8) %>% 
-  addProviderTiles(providers$Esri.NatGeoWorldMap)
-```
-
 
