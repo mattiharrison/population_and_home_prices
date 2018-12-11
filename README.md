@@ -2,8 +2,8 @@
 
 1.	Topic
 
-How does the population of a city or town effect the home prices in that same area? 
-How does the census effect how developers are going to act in their new projects? 
+How does the population of a city or town affect the home prices in that same area? 
+How does the census affect how developers are going to act in their new projects? 
 
 2.	Motivation
 
