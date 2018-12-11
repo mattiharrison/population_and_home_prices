@@ -78,7 +78,7 @@ server <- function(input, output) {
     
   })
 ##another plot of California that shows more specific Zipcode areas in LA  
-  output$CA.2 <- renderPlot({
+  output$CA.2 <- renderLeaflet({
     leaflet() %>% setView(lng = -118.243683, lat = 34.052235, zoom = 9) %>% 
       addProviderTiles(providers$Esri.NatGeoWorldMap)
   })
@@ -95,7 +95,7 @@ server <- function(input, output) {
     
   })
 ##repeated for Connecticut    
-  output$CT.2 <- renderPlot({
+  output$CT.2 <- renderLeaflet({
     leaflet() %>% setView(lng = -72.65065, lat = 41.56232, zoom = 8) %>% 
       addProviderTiles(providers$Esri.NatGeoWorldMap)
     
