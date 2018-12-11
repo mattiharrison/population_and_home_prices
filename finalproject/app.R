@@ -7,7 +7,7 @@ library(leaflet)
 library(maps)
 library(ggplot2)
 library(cowplot)
-
+##reading in the packages and data that is needed 
 data <- readRDS("la_ct.rds")
 plot_1 <- read_rds("plot1.rds")
 plot_2 <- read_rds("plot2.rds")
@@ -23,12 +23,12 @@ plot_10 <- read_rds("plot10.rds")
 CA <- map_data("state", region = "california")
 CT <- map_data("state", region = "connecticut")
 
-# Define UI for application that draws a histogram
 ui <- navbarPage("Population and its Affect on Single-Family Home Prices in LA and Connecticut", theme = shinytheme("flatly"),
                  
-                 # Show a plot of the generated distribution
                  mainPanel(
-                   
+                   ##creating the tabs on the first page
+                   ##adding the expected outputs to each tab
+                   ##adding a conditional panel for the graphs
                    tabsetPanel(type = "tabs",
                                tabPanel("Intoduction", htmlOutput("introduction"), 
                                         htmlOutput("California"),
@@ -56,9 +56,8 @@ ui <- navbarPage("Population and its Affect on Single-Family Home Prices in LA a
                                tabPanel("Insights", htmlOutput("insights")))
                  ))
 
-# Define server logic required to draw a histogram
 server <- function(input, output) { 
-  
+##The header and discription on the introduction tab  
   output$introduction <- renderUI({
     
     str1  <- paste("How does population affect home prices?")
@@ -66,42 +65,42 @@ server <- function(input, output) {
     
     HTML(paste(h1(str1), p(str2)))
   })
-  
+##the first graph and text of California on the introduction tab
   output$California <- renderUI({
     
     str1  <- paste("California")
     
     HTML(paste(h3(str1)))
   })
-  
+##gives the viewer a visual of the examined area 
   output$CA.1 <- renderPlot({
     ggplot(CA, aes(x = long, y = lat)) + geom_polygon()
     
   })
-  
+##another plot of California that shows more specific Zipcode areas in LA  
   output$CA.2 <- renderPlot({
     leaflet() %>% setView(lng = -118.243683, lat = 34.052235, zoom = 9) %>% 
       addProviderTiles(providers$Esri.NatGeoWorldMap)
   })
-  
+##repeated for Connecticut  
   output$Connecticut <- renderUI({
     
     str1  <- paste("Connecticut")
     
     HTML(paste(h3(str1)))
   })
-  
+##repeated for Connecticut    
   output$CT.1 <- renderPlot({
     ggplot(CT, aes(x = long, y = lat)) + geom_polygon()
     
   })
-  
+##repeated for Connecticut    
   output$CT.2 <- renderPlot({
     leaflet() %>% setView(lng = -72.65065, lat = 41.56232, zoom = 8) %>% 
       addProviderTiles(providers$Esri.NatGeoWorldMap)
     
   })
-  
+##adding the instructions to the specific tab and in the correct formatting  
   output$instructions <- renderUI({
     
     str1  <- paste("Summary")
@@ -118,7 +117,7 @@ server <- function(input, output) {
     
     HTML(paste(h3(str1), p(str2), h3(str3), p(str4), h3(str5), p(str6), h3(str7), p(str8)))
   })
-  
+##created a function to change the graph when the conditional panel is changed   
   output$graph <- renderPlot({   
     if (input$graph == "Plot1") return(plot_1)
     else if (input$graph == "Plot2") return(plot_2)
@@ -132,7 +131,7 @@ server <- function(input, output) {
     else if (input$graph == "Plot10") return(plot_10)
     
   })
-  
+##adding my insights about the data   
   output$insights <- renderUI({
     
     str1 <- paste("Los Angeles")
@@ -152,6 +151,4 @@ server <- function(input, output) {
     HTML(paste(h3(str1), p(str2), h3(str3), p(str4), h3(str5), p(str6)))})
 }
 
-
-# Run the application 
 shinyApp(ui = ui, server = server)
