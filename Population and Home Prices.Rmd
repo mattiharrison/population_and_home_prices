@@ -26,10 +26,11 @@ library(shiny)
 ##Reading in Data from Data.gov and Zillow
 ```{r, echo=FALSE, warning= FALSE, error= FALSE, message= FALSE}
 ##LA census data
+##cleaned names and filtered out zipcodes that didn't have a population
 la <- read_csv("2010_Census_Populations_by_Zip_Code.csv") %>% 
   clean_names() %>% 
   filter(total_population > 0) 
-  
+##renamed the nme of zipcode so I could join datasets together
 names(la)[names(la)=="zip_code"] <- "zipcode"
 
 ##LA Zillow data 
@@ -38,37 +39,39 @@ zipcodes_la <- read_csv("Zip_Zhvi_SingleFamilyResidence.csv") %>%
   filter(RegionName >= 90001,
          RegionName <= 93591) %>% 
   mutate_at(c(1), as.numeric)
-
+##renamed the nme of zipcode so I could join datasets together
 names(zipcodes_la)[names(zipcodes_la)=="RegionName"] <- "zipcode"
 
 ##CT census data
 connecticut <- read_csv("2010_Census_Population_And_Housing_Units_By_Town.csv")
-
+##renamed municiplaity to city so I could join datasets
 names(connecticut)[names(connecticut)=="Municipality"] <- "City"
 
 ##CT Zillow data 
+##filtered for only Connecticut and certain variables
 city_ct <- read_csv("City_Zhvi_SingleFamilyResidence.csv") %>% 
   select(RegionID, RegionName, State, CountyName, "2010-12") %>% 
   filter(State == "CT")
-
+##renamed to city so I could join datasets
 names(city_ct)[names(city_ct)=="RegionName"] <- "City"
 ```
 
 ##Bringing Data together
 ```{r, echo=FALSE, warning= FALSE, error= FALSE, message= FALSE}
+##merged both LA sources together, filtered out for all NAs
 losangeles <- left_join(la, zipcodes_la, by = "zipcode", copy = FALSE) %>% 
   drop_na("2010-12") %>% 
   mutate(state = "CA")
-
+##created a character variable so I could create certain plots
 losangeles$zipcode <- as.character(losangeles$zipcode)
-
+##merged both CT sources together, filtered out for all NAs
 ct <- left_join(connecticut, city_ct, by = "City", copy = FALSE) %>% 
   drop_na("2010-12") %>% 
   mutate(state = "CT")
-
+##merged Connecticut and LA full datasets together into one
 all <- full_join(losangeles, ct, by = "state") %>% 
   clean_names()
-
+##wrote the rds for LA and CT data
 write_rds(all, path = "finalproject/la_ct.rds")
 ```
 
@@ -127,5 +130,3 @@ write_rds(plot_9, path = "finalproject/plot9.rds")
 plot_10 <- plot_grid(plot_3, plot_4, labels = c('', ''), ncol = 1)
 write_rds(plot_10, path = "finalproject/plot10.rds")
 ```
-
-
