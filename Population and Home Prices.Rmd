@@ -1,0 +1,145 @@
+---
+title: "How does population affect home prices?"
+author: "Matti Harrison"
+date: "12/10/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(fs)
+library(tidytext)
+library(janitor)
+library(leaflet)
+library(ggmap)
+library(zipcode)
+library(maps)
+library(viridis)
+library(ggthemes)
+library(ggplot2)
+library(maps)
+library(cowplot)
+library(shiny)
+```
+
+##Reading in Data from Data.gov and Zillow
+```{r, echo=FALSE, warning= FALSE, error= FALSE, message= FALSE}
+##LA census data
+la <- read_csv("2010_Census_Populations_by_Zip_Code.csv") %>% 
+  clean_names() %>% 
+  filter(total_population > 0) 
+  
+names(la)[names(la)=="zip_code"] <- "zipcode"
+
+##LA Zillow data 
+zipcodes_la <- read_csv("Zip_Zhvi_SingleFamilyResidence.csv") %>% 
+  select(RegionName, "2010-12") %>% 
+  filter(RegionName >= 90001,
+         RegionName <= 93591) %>% 
+  mutate_at(c(1), as.numeric)
+
+names(zipcodes_la)[names(zipcodes_la)=="RegionName"] <- "zipcode"
+
+##CT census data
+connecticut <- read_csv("2010_Census_Population_And_Housing_Units_By_Town.csv")
+
+names(connecticut)[names(connecticut)=="Municipality"] <- "City"
+
+##CT Zillow data 
+city_ct <- read_csv("City_Zhvi_SingleFamilyResidence.csv") %>% 
+  select(RegionID, RegionName, State, CountyName, "2010-12") %>% 
+  filter(State == "CT")
+
+names(city_ct)[names(city_ct)=="RegionName"] <- "City"
+```
+
+##Bringing Data together
+```{r, echo=FALSE, warning= FALSE, error= FALSE, message= FALSE}
+losangeles <- left_join(la, zipcodes_la, by = "zipcode", copy = FALSE) %>% 
+  drop_na("2010-12") %>% 
+  mutate(state = "CA")
+
+losangeles$zipcode <- as.character(losangeles$zipcode)
+
+ct <- left_join(connecticut, city_ct, by = "City", copy = FALSE) %>% 
+  drop_na("2010-12") %>% 
+  mutate(state = "CT")
+
+all <- full_join(losangeles, ct, by = "state") %>% 
+  clean_names()
+
+write_rds(all, path = "finalproject/la_ct.rds")
+```
+
+```{r, echo=FALSE, warning= FALSE, error= FALSE, message= FALSE}
+##LA population
+plot_1 <- all %>% 
+  ggplot(aes(x = zipcode, y = total_population)) + geom_col() + theme(axis.text.x = element_blank()) + 
+  labs(title = "Populations in Specific LA areas", x = "Zipcodes", y = "Population")
+write_rds(plot_1, path = "finalproject/plot1.rds")
+#LA prices 
+plot_2 <- all %>%
+  ggplot(aes(x = zipcode, y = x2010_12_x)) + geom_col() + theme(axis.text.x = element_blank()) + 
+  labs(title = "Prices for Single Family Homes in LA", x = "Zipcodes", y = "Home Prices")
+write_rds(plot_2, path = "finalproject/plot2.rds")
+##CT population
+plot_3 <- all %>% 
+  ggplot(aes(x = city, y = population)) + geom_col() + theme(axis.text.x = element_blank()) + 
+  labs(title = "Populations in Connecticut cities", x = "Towns", y = "Population")
+write_rds(plot_3, path = "finalproject/plot3.rds")
+#CT prices
+plot_4 <- all %>%
+  ggplot(aes(x = city, y = x2010_12_y)) + geom_col() + theme(axis.text.x = element_blank()) + 
+  labs(title = "Prices for Single Family Homes in CT", x = "Towns", y = "Home Prices")
+write_rds(plot_4, path = "finalproject/plot4.rds")
+#Population and household size in LA, depending on age
+##Population density for LA
+plot_5 <- all %>% 
+  ggplot(aes(x = total_population, y = average_household_size, color = median_age)) + geom_point() + labs(title = "As the Population in an LA zipcode increases, the household size increases", subtitle = "As people get older they have a smaller household size", x = "Population per Zipcode", y = "Average Household Size", color = "Median Age per Zipode")
+write_rds(plot_5, path = "finalproject/plot5.rds")
+#Population and number of open houses, added pricing of homes
+##does population correspond to more vacant homes
+plot_6 <- all %>%
+  ggplot(aes(x = population, y = vacant_housing_units , color = x2010_12_y)) + geom_point() +
+  labs(title = "As the population increases, the number of vacant homes increases in CT", 
+       x = "Population", y = "Vacant Homes", color = "Home Prices")
+write_rds(plot_6, path = "finalproject/plot6.rds")
+#Population and home prices in LA, colored by average home size
+plot_7 <- all %>%
+  ggplot(aes(x = total_population, y = x2010_12_x, color = average_household_size)) + 
+  geom_point() +
+  labs(title = "As population in LA zipcodes increase, the home prices decrease", 
+       subtitle = "The most expensive homes have the smallest household size.",
+       x = "Population", y = "Home Prices", color = "Average household size")
+write_rds(plot_7, path = "finalproject/plot7.rds")
+#Population and home prices in CT, colored by total number of homes
+plot_8 <- all %>%
+  ggplot(aes(x = population, y = x2010_12_y, color = total_housing_units)) + geom_point() +
+  labs(title = "As population in CT towns increases, the home prices decrease",
+       subtitle = "As population increases the total number of available homes increases",
+       x = "Population", y = "Home Prices", color = "Total houses")
+write_rds(plot_8, path = "finalproject/plot8.rds")
+#Population and prices together for CA
+plot_9 <- plot_grid(plot_1, plot_2, labels = c('', ''), ncol = 1)
+write_rds(plot_9, path = "finalproject/plot9.rds")
+#Population and prices together for CT
+plot_10 <- plot_grid(plot_3, plot_4, labels = c('', ''), ncol = 1)
+write_rds(plot_10, path = "finalproject/plot10.rds")
+```
+
+```{r}
+CA <- map_data("state", region = "california")
+CA.1 <- ggplot(CA, aes(x = long, y = lat)) + geom_polygon()
+
+CA.2 <- leaflet() %>% setView(lng = -118.243683, lat = 34.052235, zoom = 9) %>% 
+  addProviderTiles(providers$Esri.NatGeoWorldMap)
+
+CT <- map_data("state", region = "connecticut")
+CT.1 <- ggplot(CT, aes(x = long, y = lat)) + geom_polygon()
+
+CT.2 <- leaflet() %>% setView(lng = -72.65065, lat = 41.56232, zoom = 8) %>% 
+  addProviderTiles(providers$Esri.NatGeoWorldMap)
+```
+
+
