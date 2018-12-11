@@ -81,7 +81,7 @@ server <- function(input, output) {
   
   output$CA.2 <- renderPlot({
     leaflet() %>% setView(lng = -118.243683, lat = 34.052235, zoom = 9) %>% 
-      addProviderTiles(providers$Esri.NatGeoWorldMap) + quartz(width = "50%", height = "50%")
+      addProviderTiles(providers$Esri.NatGeoWorldMap)
   })
   
   output$Connecticut <- renderUI({
@@ -98,7 +98,7 @@ server <- function(input, output) {
   
   output$CT.2 <- renderPlot({
     leaflet() %>% setView(lng = -72.65065, lat = 41.56232, zoom = 8) %>% 
-      addProviderTiles(providers$Esri.NatGeoWorldMap) + leafletSizingPolicy()
+      addProviderTiles(providers$Esri.NatGeoWorldMap)
     
   })
   
